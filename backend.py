@@ -61,10 +61,10 @@ class ChatResponse(BaseModel):
 
 @app.post("/chat", response_model=ChatResponse)
 async def chat(req: ChatRequest):
-    user_msg = req.message.lower().strip()
+    user_msg = req.message.strip()
 
-    # 1️⃣ Greeting handling (hard rule)
-    if user_msg in ["hi", "hello", "hey", "hii", "hai"]:
+    # 1️⃣ Greeting
+    if user_msg.lower() in ["hi", "hello", "hey", "hii", "hai"]:
         return {
             "reply": (
                 "Hi 👋 Welcome to NextStep Analytics!\n\n"
@@ -73,26 +73,34 @@ async def chat(req: ChatRequest):
             )
         }
 
-    # 2️⃣ Name provided (simple heuristic)
-    if len(user_msg.split()) <= 3 and user_msg.isalpha():
+    # 2️⃣ Name detection (ONLY if it's a single word)
+    if user_msg.isalpha() and len(user_msg.split()) == 1:
         return {
             "reply": (
-                f"Nice to meet you, {req.message} 😊\n\n"
+                f"Nice to meet you, {user_msg} 😊\n\n"
                 "What would you like to learn?\n"
                 "Alteryx, Power BI, Tableau, or Excel?"
             )
         }
 
-    # 3️⃣ Otherwise → Gemini
+    # 3️⃣ LLM call (REAL ANSWERS)
     try:
-        response = model.generate_content(req.message)
+        prompt = f"""
+You are an analytics tutor for beginners.
+Explain concepts in very simple language.
+Avoid marketing language.
+Be friendly and short.
+
+Question: {user_msg}
+"""
+        response = model.generate_content(prompt)
         return {"reply": response.text}
-    except Exception:
+
+    except Exception as e:
         return {
             "reply": (
-                "I can give you a basic idea here.\n"
-                "For full hands-on training, enroll in live sessions by Manya Krishna.\n"
-                "Enrollment opening soon."
+                "I’m having a small issue right now.\n"
+                "Please try again in a moment 🙂"
             )
         }
 
