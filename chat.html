@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>AI Tutor Chat</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- HEADER -->
+  <div class="header">
+    <img src="logo.jpeg" alt="NextStep Analytics Logo">
+    <div class="brand-text">
+      <h2>NextStep Analytics</h2>
+      <p class="mentor">Mentor: Manya Krishna</p>
+    </div>
+  </div>
+
+  <!-- CHAT CONTAINER -->
+  <div class="chat-container">
+
+    <div class="message tutor">
+      👩‍🏫 Hi! I’m the AI Tutor from <b>Manya Krishna</b>.  
+      Ask me anything about Alteryx, Power BI, Tableau or Excel.
+    </div>
+
+    <div id="chatArea"></div>
+
+    <div class="input-area">
+      <input type="text" id="userInput" placeholder="Ask your question..." />
+      <button onclick="sendMessage()">Send</button>
+    </div>
+
+  </div>
+
+  <script>
+async function sendMessage() {
+  const input = document.getElementById("userInput");
+  const question = input.value;
+  if (question === "") return;
+
+  const chat = document.getElementById("chatArea");
+
+  // Student message
+  const userMsg = document.createElement("div");
+  userMsg.className = "message student";
+  userMsg.innerText = question;
+  chat.appendChild(userMsg);
+
+  input.value = "";
+
+  // Send to backend
+  const response = await fetch("http://127.0.0.1:8000/chat", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({ message: question })
+  });
+
+  const data = await response.json();
+
+  // Tutor reply
+  const tutorMsg = document.createElement("div");
+  tutorMsg.className = "message tutor";
+  tutorMsg.innerText = data.reply;
+  chat.appendChild(tutorMsg);
+}
+</script>
+
+
+</body>
+</html>
+
