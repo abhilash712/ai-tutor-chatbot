@@ -167,4 +167,28 @@ body {
   background: #00c6ff;
   font-weight: bold;
 }
+.avatars {
+  display: flex;
+  gap: 40px;
+  justify-content: center;
+  margin: 30px 0;
+}
+
+.avatar {
+  text-align: center;
+}
+
+.avatar img {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 3px solid #00c8ff;
+}
+
+.avatar p {
+  margin-top: 10px;
+  color: white;
+  font-weight: bold;
+}
 

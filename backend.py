@@ -4,21 +4,21 @@ from pydantic import BaseModel
 
 app = FastAPI()
 
-# Allow browser to talk to backend
+# ✅ CORS FIX (THIS IS THE KEY)
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=["*"],  # allow Netlify
+    allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-class Question(BaseModel):
+class ChatRequest(BaseModel):
     message: str
 
-@app.post("/chat")
-def chat(q: Question):
-    user_message = q.message
+class ChatResponse(BaseModel):
+    reply: str
 
-    reply = f"I received your question: '{user_message}'. Tutor reply coming soon."
-
-    return {"reply": reply}
+@app.post("/chat", response_model=ChatResponse)
+async def chat_endpoint(request: ChatRequest):
+    return {"reply": f"I received your question: '{request.message}'"}

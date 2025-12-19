@@ -33,41 +33,54 @@
   </div>
 
   <script>
-async function sendMessage() {
-  const input = document.getElementById("userInput");
-  const question = input.value;
-  if (question === "") return;
+    async function sendMessage() {
+      alert("send button clicked");
 
-  const chat = document.getElementById("chatArea");
+      if (!question) return;
 
-  // Student message
-  const userMsg = document.createElement("div");
-  userMsg.className = "message student";
-  userMsg.innerText = question;
-  chat.appendChild(userMsg);
+      const chat = document.getElementById("chatArea");
 
-  input.value = "";
+      // Student message
+      const userMsg = document.createElement("div");
+      userMsg.className = "message student";
+      userMsg.innerText = question;
+      chat.appendChild(userMsg);
 
-  // Send to backend
-  const response = await fetch("http://127.0.0.1:8000/chat", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json"
-    },
-    body: JSON.stringify({ message: question })
-  });
+      input.value = "";
 
-  const data = await response.json();
+      try {
+        const response = await fetch(
+          "https://ai-tutor-chatbot-ne61.onrender.com/chat",
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json"
+            },
+            body: JSON.stringify({ message: question })
+          }
+        );
 
-  // Tutor reply
-  const tutorMsg = document.createElement("div");
-  tutorMsg.className = "message tutor";
-  tutorMsg.innerText = data.reply;
-  chat.appendChild(tutorMsg);
-}
-</script>
+        if (!response.ok) {
+          throw new Error("Backend error: " + response.status);
+        }
 
+        const data = await response.json();
+
+        const tutorMsg = document.createElement("div");
+        tutorMsg.className = "message tutor";
+        tutorMsg.innerText = data.reply;
+        chat.appendChild(tutorMsg);
+
+      } catch (error) {
+        console.error("Chat error:", error);
+
+        const errorMsg = document.createElement("div");
+        errorMsg.className = "message tutor";
+        errorMsg.innerText = "⚠️ Tutor is waking up. Please try again in 10 seconds.";
+        chat.appendChild(errorMsg);
+      }
+    }
+  </script>
 
 </body>
 </html>
-
