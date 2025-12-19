@@ -61,14 +61,39 @@ class ChatResponse(BaseModel):
 
 @app.post("/chat", response_model=ChatResponse)
 async def chat(req: ChatRequest):
+    user_msg = req.message.lower().strip()
+
+    # 1️⃣ Greeting handling (hard rule)
+    if user_msg in ["hi", "hello", "hey", "hii", "hai"]:
+        return {
+            "reply": (
+                "Hi 👋 Welcome to NextStep Analytics!\n\n"
+                "I’m here to help you explore analytics courses.\n"
+                "May I know your name?"
+            )
+        }
+
+    # 2️⃣ Name provided (simple heuristic)
+    if len(user_msg.split()) <= 3 and user_msg.isalpha():
+        return {
+            "reply": (
+                f"Nice to meet you, {req.message} 😊\n\n"
+                "What would you like to learn?\n"
+                "Alteryx, Power BI, Tableau, or Excel?"
+            )
+        }
+
+    # 3️⃣ Otherwise → Gemini
     try:
         response = model.generate_content(req.message)
         return {"reply": response.text}
     except Exception:
         return {
             "reply": (
-                "I can give you a basic idea here. "
-                "For full hands-on training, enroll in live sessions by Manya Krishna. "
+                "I can give you a basic idea here.\n"
+                "For full hands-on training, enroll in live sessions by Manya Krishna.\n"
                 "Enrollment opening soon."
             )
         }
+
+
