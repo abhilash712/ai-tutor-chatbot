@@ -1,107 +1,109 @@
+import os
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
-import os
-import google.generativeai as genai
 
-# --- App setup ---
+from langchain_google_genai import ChatGoogleGenerativeAI
+from langchain.memory import ConversationBufferMemory
+from langchain.prompts import PromptTemplate
+from langchain.chains import LLMChain
+
+# --------------------------------------------------
+# APP SETUP
+# --------------------------------------------------
 app = FastAPI()
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=["*"],   # Netlify access
+    allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# --- Gemini setup ---
-genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
-
-model = genai.GenerativeModel(
-    model_name="gemini-pro",
-    system_instruction="""
-You are a learning assistant for NextStep Analytics.
-
-You are a friendly learning assistant for NextStep Analytics.
-
-Your goal:
-- Gently guide students who are exploring analytics courses
-- Start with a warm greeting
-- Ask the student’s name if not known
-- Ask what subject they are interested in
-- Give only a very basic, beginner-level explanation
-- Create curiosity for full training
-
-Rules:
-- Never give step-by-step solutions
-- Never give advanced or complete answers
-- Keep responses short and friendly
-- Sound human and conversational
-
-Conversation behavior:
-- If the user says "hi" or greets, ask their name
-- If the user asks a topic directly, give a short intro (2–3 lines max)
-- End explanations with a soft promotion:
-  "This is taught in detail during live sessions by Manya Krishna. Enrollment opening soon."
-
-Tone:
-- Warm
-- Encouraging
-- Student-focused
-""",
+# --------------------------------------------------
+# LLM SETUP (Gemini)
+# --------------------------------------------------
+llm = ChatGoogleGenerativeAI(
+    model="gemini-pro",
+    google_api_key=os.getenv("GOOGLE_API_KEY"),
+    temperature=0.4
 )
 
-# --- Request / Response ---
+# --------------------------------------------------
+# MEMORY (THIS FIXES YOUR ISSUE)
+# --------------------------------------------------
+memory = ConversationBufferMemory(
+    memory_key="chat_history",
+    return_messages=True
+)
+
+# --------------------------------------------------
+# PROMPT (VERY IMPORTANT)
+# --------------------------------------------------
+prompt = PromptTemplate(
+    input_variables=["chat_history", "user_input"],
+    template="""
+You are a friendly analytics tutor from NextStep Analytics.
+
+Your role:
+- Help beginners understand analytics tools
+- Speak in simple, clear language
+- Be warm and student-friendly
+- Never sound robotic
+- Never repeat the same sentence again and again
+
+Teaching rules:
+- If the user greets, greet back and ask their name
+- If name is known, use the name
+- Ask what subject they want (Alteryx, Power BI, Tableau, Excel)
+- Give only a basic explanation (not deep training)
+- After every answer, ask ONE short follow-up question
+
+Conversation so far:
+{chat_history}
+
+Student message:
+{user_input}
+
+Tutor reply:
+"""
+)
+
+# --------------------------------------------------
+# CHAIN
+# --------------------------------------------------
+chain = LLMChain(
+    llm=llm,
+    prompt=prompt,
+    memory=memory
+)
+
+# --------------------------------------------------
+# API MODEL
+# --------------------------------------------------
 class ChatRequest(BaseModel):
     message: str
 
-class ChatResponse(BaseModel):
-    reply: str
-
-
-@app.post("/chat", response_model=ChatResponse)
-async def chat(req: ChatRequest):
-    user_msg = req.message.strip()
-
-    # 1️⃣ Greeting
-    if user_msg.lower() in ["hi", "hello", "hey", "hii", "hai"]:
-        return {
-            "reply": (
-                "Hi 👋 Welcome to NextStep Analytics!\n\n"
-                "I’m here to help you explore analytics courses.\n"
-                "May I know your name?"
-            )
-        }
-
-    # 2️⃣ Name detection (ONLY if it's a single word)
-    if user_msg.isalpha() and len(user_msg.split()) == 1:
-        return {
-            "reply": (
-                f"Nice to meet you, {user_msg} 😊\n\n"
-                "What would you like to learn?\n"
-                "Alteryx, Power BI, Tableau, or Excel?"
-            )
-        }
-
-    # 3️⃣ LLM call (REAL ANSWERS)
+# --------------------------------------------------
+# CHAT ENDPOINT
+# --------------------------------------------------
+@app.post("/chat")
+async def chat_endpoint(request: ChatRequest):
     try:
-        prompt = f"""
-You are an analytics tutor for beginners.
-Explain concepts in very simple language.
-Avoid marketing language.
-Be friendly and short.
-
-Question: {user_msg}
-"""
-        response = model.generate_content(prompt)
-        return {"reply": response.text}
-
+        response = chain.run(request.message)
+        return {"reply": response}
     except Exception as e:
         return {
-            "reply": (
-                "I’m having a small issue right now.\n"
-                "Please try again in a moment 🙂"
-            )
+            "reply": "I’m having a small issue right now. Please try again in a moment 🙂"
         }
+
+# --------------------------------------------------
+# HEALTH CHECK
+# --------------------------------------------------
+@app.get("/")
+def health():
+    return {"status": "AI Tutor Backend Running"}
+
 
 
