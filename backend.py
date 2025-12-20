@@ -4,13 +4,12 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
-# Imports for LangChain v1.0 classic modules
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_classic.memory import ConversationBufferMemory
 from langchain_classic.chains import LLMChain
 from langchain_classic.prompts import PromptTemplate
 
-# Logging to help you see any future errors in Render
+# Logging setup
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
@@ -25,11 +24,11 @@ app.add_middleware(
 )
 
 # --------------------------------------------------
-# LLM SETUP - Updated to 2025 Stable Model
+# LLM SETUP - Stable 2025 Model
 # --------------------------------------------------
 llm = ChatGoogleGenerativeAI(
-    model="gemini-2.5-flash",  # ✅ Updated stable model name
-    temperature=0.1,           # Low temp for direct, minimal answers
+    model="gemini-2.5-flash", 
+    temperature=0.2, 
     google_api_key=os.getenv("GOOGLE_API_KEY")
 )
 
@@ -39,18 +38,24 @@ memory = ConversationBufferMemory(
 )
 
 # --------------------------------------------------
-# PROMPT - Updated for minimal, concise answers
+# ENHANCED PROMPT - Education & Expertise
 # --------------------------------------------------
 template = """
-You are a minimal AI tutor from NextStep Analytics.
+You are the official AI Tutor for NextStep Analytics, representing Lead Mentor Manya Krishna.
 
-Rules:
-- Give very short, direct, and minimal answers.
-- 1-2 sentences maximum.
-- Do not say "Hello" or "How can I help" in every message.
-- Be helpful but extremely brief.
+### 🎓 MENTOR PROFILE & EDUCATION:
+- **Academic Background:** Katta Manya Krishna holds an MBA in Finance from Osmania University (Wesley PG College)[cite: 46, 49, 50, 53].
+- **Professional Path:** She transitioned from an Operations Tax Analyst at Franklin Templeton to a Data Analyst Team Lead at JP Morgan Chase.
+- **Core Mastery:** She is an Alteryx Designer Core & Cloud Core Certified expert who has saved over 10,000 manual work hours through automation[cite: 70, 85, 86].
+- **Technical Skills:** Expert in Alteryx, Tableau, UiPath RPA, and SQL-Basics[cite: 54].
 
-Chat history: {chat_history}
+### 🤖 YOUR COMMUNICATION RULES:
+1. **The Greeting:** ALWAYS start your first response with "hii".
+2. **Academic Authority:** When asked about studies, highlight her MBA from Osmania University to show her strong foundation in Finance and Analytics.
+3. **Conciseness:** Provide enough detail about her studies and experience but keep the total reply to 2-3 sentences max.
+4. **Call to Action:** Remind students that Manya teaches these corporate-level automation skills in her courses.
+
+Conversation so far: {chat_history}
 Student: {user_input}
 Tutor:"""
 
@@ -67,8 +72,8 @@ async def chat(request: ChatRequest):
         response = chain.run(request.message)
         return {"reply": response}
     except Exception as e:
-        logger.error(f"AI Error: {str(e)}") # Shows the specific error in Render logs
-        return {"reply": f"Model Error: {str(e)}"}
+        logger.error(f"AI Error: {str(e)}")
+        return {"reply": f"Error: {str(e)}"}
 
 @app.get("/")
 def health():
