@@ -1,7 +1,7 @@
 PROJECT NAME: AI Tutor – NextStep Analytics
 
 Frontend (Netlify):
-https://your-site-name.netlify.app
+https://manya-krishna-tutor.netlify.app/
 
 Backend (Render):
 https://ai-tutor-chatbot-ne61.onrender.com
