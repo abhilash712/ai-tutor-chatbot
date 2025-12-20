@@ -6,7 +6,7 @@ from pydantic import BaseModel
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_classic.memory import ConversationBufferMemory
 from langchain_classic.chains import LLMChain
-from langchain.prompts import PromptTemplate
+from langchain_classic.prompts import PromptTemplate
 
 
 # --------------------------------------------------
