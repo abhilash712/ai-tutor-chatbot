@@ -4,7 +4,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
 from langchain_google_genai import ChatGoogleGenerativeAI
-from langchain.memory.buffer import ConversationBufferMemory
+from langchain.memory import ConversationBufferMemory
 from langchain.prompts import PromptTemplate
 from langchain.chains import LLMChain
 
@@ -24,11 +24,14 @@ app.add_middleware(
 # --------------------------------------------------
 # LLM SETUP
 # --------------------------------------------------
+from langchain_google_genai import ChatGoogleGenerativeAI
+
 llm = ChatGoogleGenerativeAI(
-    model="gemini-pro",
-    google_api_key=os.getenv("GOOGLE_API_KEY"),
-    temperature=0.4
+    model="models/gemini-1.5-flash",   # ✅ IMPORTANT
+    temperature=0.4,
+    google_api_key=os.getenv("GOOGLE_API_KEY")
 )
+
 
 # --------------------------------------------------
 # MEMORY (CRITICAL)
