@@ -4,9 +4,10 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
 from langchain_google_genai import ChatGoogleGenerativeAI
-from langchain.memory import ConversationBufferMemory
+from langchain_classic.memory import ConversationBufferMemory
+from langchain_classic.chains import LLMChain
 from langchain.prompts import PromptTemplate
-from langchain.chains import LLMChain
+
 
 # --------------------------------------------------
 # APP SETUP

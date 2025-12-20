@@ -2,6 +2,7 @@ fastapi
 uvicorn
 pydantic
 langchain
+langchain-classic         <-- Add this line
 langchain-google-genai
 langchain-community
 google-generativeai
