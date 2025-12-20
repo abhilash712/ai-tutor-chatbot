@@ -1,0 +1,17 @@
+PROJECT NAME: AI Tutor – NextStep Analytics
+
+Frontend (Netlify):
+https://your-site-name.netlify.app
+
+Backend (Render):
+https://ai-tutor-chatbot-ne61.onrender.com
+
+Render Dashboard:
+https://dashboard.render.com/
+
+GitHub Repo:
+https://github.com/abhilash712/ai-tutor-chatbot
+
+Notes:
+- Backend uses Gemini API
+- Server: Render (paid recommended for production)
