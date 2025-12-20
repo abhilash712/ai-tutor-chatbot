@@ -4,13 +4,13 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
-# Correct imports for LangChain v1.0 (late 2025)
+# Imports for LangChain v1.0 classic modules
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_classic.memory import ConversationBufferMemory
 from langchain_classic.chains import LLMChain
 from langchain_classic.prompts import PromptTemplate
 
-# Setup logging to see errors in Render
+# Logging to help you see any future errors in Render
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
@@ -25,11 +25,11 @@ app.add_middleware(
 )
 
 # --------------------------------------------------
-# LLM SETUP - Simplified model name
+# LLM SETUP - Updated to 2025 Stable Model
 # --------------------------------------------------
 llm = ChatGoogleGenerativeAI(
-    model="gemini-1.5-flash",  # Ensure no 'models/' prefix
-    temperature=0.1,           # Lower temperature for more direct/minimal answers
+    model="gemini-2.5-flash",  # ✅ Updated stable model name
+    temperature=0.1,           # Low temp for direct, minimal answers
     google_api_key=os.getenv("GOOGLE_API_KEY")
 )
 
@@ -46,9 +46,9 @@ You are a minimal AI tutor from NextStep Analytics.
 
 Rules:
 - Give very short, direct, and minimal answers.
-- Do not use unnecessary greetings.
-- Answer in 1-2 sentences max.
-- Remember the student's context.
+- 1-2 sentences maximum.
+- Do not say "Hello" or "How can I help" in every message.
+- Be helpful but extremely brief.
 
 Chat history: {chat_history}
 Student: {user_input}
@@ -67,9 +67,8 @@ async def chat(request: ChatRequest):
         response = chain.run(request.message)
         return {"reply": response}
     except Exception as e:
-        # LOG THE REAL ERROR to Render logs
-        logger.error(f"AI Error: {str(e)}")
-        return {"reply": f"Error: {str(e)}"} # Temporary: shows real error in chat UI
+        logger.error(f"AI Error: {str(e)}") # Shows the specific error in Render logs
+        return {"reply": f"Model Error: {str(e)}"}
 
 @app.get("/")
 def health():
