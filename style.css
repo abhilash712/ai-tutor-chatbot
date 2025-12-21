@@ -11,13 +11,45 @@
 }
 
 /* HEADER STYLE */
-.header { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; }
-.logo-group { display: flex; align-items: center; gap: 20px; }
-.logo { width: 80px; height: 80px; border-radius: 12px; }
-.brand-info h2 { font-size: 1.8rem; }
-.brand-info p { font-size: 1rem; color: #ccc; }
-.brand-info span { color: #00d2ff; }
+/* MODERN HEADER & LOGO SCALING */
+.header { 
+    display: flex; 
+    justify-content: space-between; 
+    align-items: center; 
+    padding: 20px 0; /* Increased padding for more "breathing room" */
+}
 
+.logo-group { 
+    display: flex; 
+    align-items: center; 
+    gap: 25px; 
+}
+
+.logo { 
+    width: 120px;       /* Increased width for better visibility */
+    height: auto;        /* Automatic height to keep the shield shape perfect */
+    border-radius: 15px; 
+    /* This adds a soft glow behind your logo shield */
+    filter: drop-shadow(0 0 10px rgba(0, 210, 255, 0.3)); 
+    transition: transform 0.3s ease, filter 0.3s ease;
+}
+
+.logo:hover {
+    transform: scale(1.05); /* Logo grows slightly when hovered */
+    filter: drop-shadow(0 0 20px rgba(0, 210, 255, 0.6)); /* Glow intensifies */
+}
+
+.brand-info h2 { 
+    font-size: 2rem; 
+    letter-spacing: 1px;
+    font-weight: 700;
+}
+
+.brand-info p { 
+    font-size: 1.1rem; 
+    color: #b2ebf2; 
+    margin-top: 4px;
+}
 .mentor-profile { display: flex; align-items: center; gap: 15px; text-align: right; }
 .profile-img { width: 60px; height: 60px; border-radius: 50%; border: 2px solid #00d2ff; }
 .mentor-text p { font-size: 0.9rem; }
