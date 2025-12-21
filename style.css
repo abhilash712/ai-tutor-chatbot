@@ -12,10 +12,10 @@
 
 /* HEADER STYLE */
 .header { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; }
-.logo-group { display: flex; align-items: center; gap: 15px; }
-.logo { width: 50px; height: 50px; border-radius: 8px; }
-.brand-info h2 { font-size: 1.2rem; }
-.brand-info p { font-size: 0.8rem; color: #ccc; }
+.logo-group { display: flex; align-items: center; gap: 20px; }
+.logo { width: 80px; height: 80px; border-radius: 12px; }
+.brand-info h2 { font-size: 1.8rem; }
+.brand-info p { font-size: 1rem; color: #ccc; }
 .brand-info span { color: #00d2ff; }
 
 .mentor-profile { display: flex; align-items: center; gap: 15px; text-align: right; }
