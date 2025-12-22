@@ -1,82 +1,159 @@
-// 1. GLOBAL VARIABLES - These must be at the top so the bot has "Memory"
-let chatHistory = []; 
-let chatState = "asking_name"; 
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>AI Tutor | NextStep Analytics</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
 
-// 2. AUTOMATIC POP-UP - Opens chat after 2 seconds
-window.onload = () => {
-    setTimeout(() => {
-        const widget = document.getElementById('chat-widget');
-        if(widget) widget.classList.add('open');
-    }, 2000);
-};
-
-// Toggle Chat Visibility
-function toggleChat() {
-    document.getElementById('chat-widget').classList.toggle('open');
-}
-
-// Enter Key Support
-function handleKeyPress(e) {
-    if (e.key === 'Enter') sendMessage();
-}
-
-// 3. UI HELPER - Adds message bubbles to the screen
-function addTutorMessage(text) {
-    const chat = document.getElementById("chatArea");
-    const tutorMsg = document.createElement("div");
-    tutorMsg.className = "message tutor";
-    tutorMsg.innerHTML = `<div class="bot-icon">🤖</div><div class="text">${text}</div>`;
-    chat.appendChild(tutorMsg);
-    chat.scrollTop = chat.scrollHeight; // Auto-scroll to bottom
-}
-
-// 4. MAIN SEND LOGIC - Connects UI to the AI
-async function sendMessage() {
-    const input = document.getElementById("userInput");
-    const question = input.value.trim();
-    if (!question) return;
-
-    const chat = document.getElementById("chatArea");
-
-    // Display Student Message
-    const userMsg = document.createElement("div");
-    userMsg.className = "message student";
-    userMsg.innerHTML = `<div class="text">${question}</div>`;
-    chat.appendChild(userMsg);
-
-    input.value = "";
-    chat.scrollTop = chat.scrollHeight;
-
-    // Send to the AI Backend
-    await callAIBatch(question);
-}
-
-// 5. AI API CALL - Sends history so the bot knows what was said before
-async function callAIBatch(question) {
-    // Save current question to history
-    chatHistory.push({ role: "user", content: question });
-
-    try {
-        const response = await fetch("https://ai-tutor-chatbot-ne61.onrender.com/chat", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ 
-                message: question,
-                history: chatHistory // CRITICAL: This prevents repetition
-            })
-        });
+    <main class="main-container">
         
-        if (!response.ok) throw new Error("Server Busy");
+        <header class="header">
+            <div class="logo-group">
+                <img src="logo.jpeg" alt="Logo" class="logo">
+                <div class="brand-info">
+                    <h2>NextStep Analytics</h2>
+                    <p>Mentor: <span>Manya Krishna</span></p>
+                </div>
+            </div>
+            
+            <div class="mentor-profile">
+                <div class="mentor-text">
+                    <p>Mentor Profile: <strong>Manya Krishna</strong></p>
+                    <small>Senior Data Scientist</small>
+                </div>
+                <img src="tutor.png" alt="Manya Krishna" class="profile-img">
+            </div>
+        </header>
 
-        const data = await response.json();
-        
-        // Save AI reply to history so it doesn't repeat greetings
-        chatHistory.push({ role: "assistant", content: data.reply });
-        
-        addTutorMessage(data.reply);
+        <section class="hero">
+            <h1>AI Tutor for Analytics</h1>
+            <p class="subtitle">Master Data Skills with Personalized AI Guidance</p>
 
-    } catch (error) {
-        // Friendly error for when the Render free-tier server is waking up
-        addTutorMessage("I'm just waking up my brain! 🧠 Give me 5 seconds and please type that again.");
-    }
-}
+            <div class="course-grid">
+                <div class="glass-card">
+                    <i class="fa-solid fa-chart-line"></i>
+                    <p>Alteryx</p>
+                </div>
+                <div class="glass-card">
+                    <i class="fa-solid fa-chart-pie"></i>
+                    <p>Power BI</p>
+                </div>
+                <div class="glass-card">
+                    <i class="fa-solid fa-table"></i>
+                    <p>Tableau</p>
+                </div>
+                <div class="glass-card">
+                    <i class="fa-solid fa-file-excel"></i>
+                    <p>Advanced Excel</p>
+                </div>
+            </div>
+        </section>
+
+        <footer class="footer-info">
+            <h4>Contact Details:</h4>
+            <p>Support Email: support@nextstep.com</p>
+            <p>Office Address: 123 Analytics Way, Tech City</p>
+            <p>Website: nextstepanalytics.com</p>
+        </footer>
+
+        <div id="chat-widget" class="chat-widget">
+            <div class="chat-header">
+                <span>AI Tutor Assistant</span>
+                <button onclick="toggleChat()" class="close-btn">&times;</button>
+            </div>
+            <div id="chatArea" class="chat-body">
+                <div class="message tutor">
+                    <div class="bot-icon">🤖</div>
+                    <div class="text">Hii 👋 Welcome to NextStep Analytics! What’s your name?</div>
+                </div>
+            </div>
+            <div class="chat-footer">
+                <input type="text" id="userInput" placeholder="Type your message..." onkeypress="handleKeyPress(event)">
+                <button onclick="sendMessage()" class="send-btn">
+                    <i class="fa-solid fa-paper-plane"></i>
+                </button>
+            </div>
+        </div>
+
+    </main>
+
+    <script>
+        // 1. GLOBAL VARIABLES (Declared here so they never reset during chat)
+        let chatHistory = []; 
+
+        // 2. AUTOMATICALLY OPEN CHAT AFTER 2 SECONDS
+        window.onload = () => {
+            setTimeout(() => {
+                const widget = document.getElementById('chat-widget');
+                if (widget) widget.classList.add('open');
+            }, 2000);
+        };
+
+        function toggleChat() {
+            document.getElementById('chat-widget').classList.toggle('open');
+        }
+
+        function handleKeyPress(e) {
+            if (e.key === 'Enter') sendMessage();
+        }
+
+        async function sendMessage() {
+            const input = document.getElementById("userInput");
+            const question = input.value.trim();
+            if (!question) return;
+
+            const chat = document.getElementById("chatArea");
+
+            // Display Student message
+            const userMsg = document.createElement("div");
+            userMsg.className = "message student";
+            userMsg.innerHTML = `<div class="text">${question}</div>`;
+            chat.appendChild(userMsg);
+
+            input.value = "";
+            chat.scrollTop = chat.scrollHeight;
+
+            // Save user message to history array
+            chatHistory.push({ role: "user", content: question });
+
+            try {
+                const response = await fetch("https://ai-tutor-chatbot-ne61.onrender.com/chat", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ 
+                        message: question,
+                        history: chatHistory // Sends context to stop repetitive loops
+                    })
+                });
+
+                if (!response.ok) throw new Error("Server error");
+
+                const data = await response.json();
+
+                // Save AI reply to history so it remembers what it said
+                chatHistory.push({ role: "assistant", content: data.reply });
+
+                const tutorMsg = document.createElement("div");
+                tutorMsg.className = "message tutor";
+                tutorMsg.innerHTML = `
+                    <div class="bot-icon">🤖</div>
+                    <div class="text">${data.reply}</div>
+                `;
+                chat.appendChild(tutorMsg);
+                chat.scrollTop = chat.scrollHeight;
+
+            } catch (error) {
+                const errorMsg = document.createElement("div");
+                errorMsg.className = "message tutor";
+                errorMsg.innerHTML = `<div class="text">I'm just waking up my brain! 🧠 Please type that again in 5 seconds.</div>`;
+                chat.appendChild(errorMsg);
+                chat.scrollTop = chat.scrollHeight;
+            }
+        }
+    </script>
+</body>
+</html>
