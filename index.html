@@ -97,47 +97,30 @@
             if (e.key === 'Enter') sendMessage();
         }
 
-        async function sendMessage() {
-            const input = document.getElementById("userInput");
-            const question = input.value.trim();
-            if (!question) return;
+        async function callAIBatch(question) {
+    // Add current user question to history array
+    chatHistory.push({ role: "user", content: question });
 
-            const chat = document.getElementById("chatArea");
+    try {
+        const response = await fetch("https://ai-tutor-chatbot-ne61.onrender.com/chat", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ 
+                message: question,
+                history: chatHistory // This sends the previous messages to the AI
+            })
+        });
+        
+        if (!response.ok) throw new Error("Server Busy");
 
-            // Student message
-            const userMsg = document.createElement("div");
-            userMsg.className = "message student";
-            userMsg.innerHTML = `<div class="text">${question}</div>`;
-            chat.appendChild(userMsg);
-
-            input.value = "";
-            chat.scrollTop = chat.scrollHeight;
-
-            try {
-                const response = await fetch("https://ai-tutor-chatbot-ne61.onrender.com/chat", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ message: question })
-                });
-
-                const data = await response.json();
-
-                const tutorMsg = document.createElement("div");
-                tutorMsg.className = "message tutor";
-                tutorMsg.innerHTML = `
-                    <div class="bot-icon">🤖</div>
-                    <div class="text">${data.reply}</div>
-                `;
-                chat.appendChild(tutorMsg);
-                chat.scrollTop = chat.scrollHeight;
-
-            } catch (error) {
-                const errorMsg = document.createElement("div");
-                errorMsg.className = "message tutor";
-                errorMsg.innerHTML = `<div class="text">⚠️ Please wait a few seconds and try again.</div>`;
-                chat.appendChild(errorMsg);
-            }
-        }
-    </script>
-</body>
-</html>
+        const data = await response.json();
+        
+        // Save the AI response to history so it doesn't repeat the same greeting
+        chatHistory.push({ role: "assistant", content: data.reply });
+        
+        addTutorMessage(data.reply);
+    } catch (error) {
+        // This stops the "Something went wrong" loop
+        addTutorMessage("I'm just waking up my brain! 🧠 Give me 5 seconds and please type that again.");
+    }
+}
