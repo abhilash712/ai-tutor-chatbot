@@ -103,3 +103,101 @@
 .chat-footer { padding: 10px; display: flex; gap: 5px; border-top: 1px solid #ddd; }
 .chat-footer input { flex: 1; border: 1px solid #ccc; padding: 10px; border-radius: 20px; outline: none; }
 .send-btn { background: #006064; color: white; border: none; width: 40px; height: 40px; border-radius: 50%; cursor: pointer; }
+
+// 1. GLOBAL VARIABLES (Declared outside functions so they don't reset)
+let chatState = "asking_name"; 
+let studentName = "";
+let chatHistory = []; // Stores the conversation so the bot doesn't repeat itself
+
+// 2. AUTOMATIC POP-UP
+window.onload = () => {
+    setTimeout(() => {
+        document.getElementById('chat-widget').classList.add('open');
+    }, 2000);
+};
+
+function toggleChat() {
+    document.getElementById('chat-widget').classList.toggle('open');
+}
+
+function handleKeyPress(e) {
+    if (e.key === 'Enter') sendMessage();
+}
+
+// 3. MAIN MESSAGE LOGIC
+async function sendMessage() {
+    const input = document.getElementById("userInput");
+    const text = input.value.trim();
+    if (!text) return;
+
+    const chat = document.getElementById("chatArea");
+
+    // Display student message
+    const userMsg = document.createElement("div");
+    userMsg.className = "message student";
+    userMsg.innerHTML = `<div class="text">${text}</div>`;
+    chat.appendChild(userMsg);
+    input.value = "";
+    chat.scrollTop = chat.scrollHeight;
+
+    // --- LEAD CAPTURE & CONTEXT LOGIC ---
+    if (chatState === "asking_name") {
+        studentName = text;
+        addTutorMessage(`Nice to meet you, ${studentName}! 😊 Are you a student or a working professional?`);
+        chatState = "asking_status";
+    } 
+    else if (chatState === "asking_status") {
+        addTutorMessage(`Got it! And which course are you interested in: Alteryx, Power BI, Tableau, or Excel?`);
+        chatState = "asking_course";
+    }
+    else if (chatState === "asking_course") {
+        addTutorMessage(`Great choice! To send you the syllabus for ${text}, please share your **Email** or **WhatsApp number**.`);
+        chatState = "asking_contact";
+    }
+    else if (chatState === "asking_contact") {
+        addTutorMessage("Thank you! I've saved your details. You can now ask me any technical questions about these tools!");
+        saveLead(studentName, text); 
+        chatState = "chatting"; // Now the bot will use the AI for all future questions
+    } 
+    else {
+        // Normal AI Chatbot Logic for technical questions
+        await callAIBatch(text);
+    }
+}
+
+// 4. HELPER FUNCTIONS
+function addTutorMessage(text) {
+    const chat = document.getElementById("chatArea");
+    const tutorMsg = document.createElement("div");
+    tutorMsg.className = "message tutor";
+    tutorMsg.innerHTML = `<div class="bot-icon">🤖</div><div class="text">${text}</div>`;
+    chat.appendChild(tutorMsg);
+    chat.scrollTop = chat.scrollHeight;
+}
+
+async function callAIBatch(question) {
+    // Add current question to history
+    chatHistory.push({ role: "user", content: question });
+
+    try {
+        const response = await fetch("https://ai-tutor-chatbot-ne61.onrender.com/chat", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ 
+                message: question,
+                history: chatHistory // Sends the history to stop repetition
+            })
+        });
+        
+        const data = await response.json();
+        chatHistory.push({ role: "assistant", content: data.reply });
+        addTutorMessage(data.reply);
+    } catch (error) {
+        addTutorMessage("⚠️ Please wait a moment and try again.");
+    }
+}
+
+async function saveLead(name, contact) {
+    console.log("Lead Captured:", { name, contact });
+    // This is where you connect to Google Sheets or your backend
+}
