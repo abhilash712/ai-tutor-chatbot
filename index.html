@@ -1,104 +1,59 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>AI Tutor | NextStep Analytics</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="style.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-</head>
-<body>
+// 1. GLOBAL VARIABLES - These must be at the top so the bot has "Memory"
+let chatHistory = []; 
+let chatState = "asking_name"; 
 
-    <main class="main-container">
-        
-        <header class="header">
-            <div class="logo-group">
-                <img src="logo.jpeg" alt="Logo" class="logo">
-                <div class="brand-info">
-                    <h2>NextStep Analytics</h2>
-                    <p>Mentor: <span>Manya Krishna</span></p>
-                </div>
-            </div>
-            
-            <div class="mentor-profile">
-                <div class="mentor-text">
-                    <p>Mentor Profile: <strong>Manya Krishna</strong></p>
-                    <small>Automation Specialist</small>
-                </div>
-                <img src="tutor.png" alt="Manya Krishna" class="profile-img">
-            </div>
-        </header>
+// 2. AUTOMATIC POP-UP - Opens chat after 2 seconds
+window.onload = () => {
+    setTimeout(() => {
+        const widget = document.getElementById('chat-widget');
+        if(widget) widget.classList.add('open');
+    }, 2000);
+};
 
-        <section class="hero">
-            <h1>AI Tutor for Analytics</h1>
-            <p class="subtitle">Master Data Skills with Personalized AI Guidance</p>
+// Toggle Chat Visibility
+function toggleChat() {
+    document.getElementById('chat-widget').classList.toggle('open');
+}
 
-            <div class="course-grid">
-                <div class="glass-card">
-                    <i class="fa-solid fa-chart-line"></i>
-                    <p>Alteryx</p>
-                </div>
-                <div class="glass-card">
-                    <i class="fa-solid fa-chart-pie"></i>
-                    <p>Power BI</p>
-                </div>
-                <div class="glass-card">
-                    <i class="fa-solid fa-table"></i>
-                    <p>Tableau</p>
-                </div>
-                <div class="glass-card">
-                    <i class="fa-solid fa-file-excel"></i>
-                    <p>Advanced Excel</p>
-                </div>
-            </div>
-        </section>
+// Enter Key Support
+function handleKeyPress(e) {
+    if (e.key === 'Enter') sendMessage();
+}
 
-        <footer class="footer-info">
-            <h4>Contact Details:</h4>
-            <p>Support Email: support@nextstep.com</p>
-            <p>Office Address: 123 Analytics Way, Tech City</p>
-            <p>Website: nextstepanalytics.com</p>
-        </footer>
+// 3. UI HELPER - Adds message bubbles to the screen
+function addTutorMessage(text) {
+    const chat = document.getElementById("chatArea");
+    const tutorMsg = document.createElement("div");
+    tutorMsg.className = "message tutor";
+    tutorMsg.innerHTML = `<div class="bot-icon">🤖</div><div class="text">${text}</div>`;
+    chat.appendChild(tutorMsg);
+    chat.scrollTop = chat.scrollHeight; // Auto-scroll to bottom
+}
 
-        <div id="chat-widget" class="chat-widget">
-            <div class="chat-header">
-                <span>AI Tutor Assistant</span>
-                <button onclick="toggleChat()" class="close-btn">&times;</button>
-            </div>
-            <div id="chatArea" class="chat-body">
-                <div class="message tutor">
-                    <div class="bot-icon">🤖</div>
-                    <div class="text">Hii 👋 Welcome to NextStep Analytics! What’s your name?</div>
-                </div>
-            </div>
-            <div class="chat-footer">
-                <input type="text" id="userInput" placeholder="Type your message..." onkeypress="handleKeyPress(event)">
-                <button onclick="sendMessage()" class="send-btn">
-                    <i class="fa-solid fa-paper-plane"></i>
-                </button>
-            </div>
-        </div>
+// 4. MAIN SEND LOGIC - Connects UI to the AI
+async function sendMessage() {
+    const input = document.getElementById("userInput");
+    const question = input.value.trim();
+    if (!question) return;
 
-    </main>
+    const chat = document.getElementById("chatArea");
 
-    <script>
-        // 1. AUTOMATICALLY OPEN CHAT AFTER 2 SECONDS
-        window.onload = () => {
-            setTimeout(() => {
-                document.getElementById('chat-widget').classList.add('open');
-            }, 2000);
-        };
+    // Display Student Message
+    const userMsg = document.createElement("div");
+    userMsg.className = "message student";
+    userMsg.innerHTML = `<div class="text">${question}</div>`;
+    chat.appendChild(userMsg);
 
-        function toggleChat() {
-            document.getElementById('chat-widget').classList.toggle('open');
-        }
+    input.value = "";
+    chat.scrollTop = chat.scrollHeight;
 
-        function handleKeyPress(e) {
-            if (e.key === 'Enter') sendMessage();
-        }
+    // Send to the AI Backend
+    await callAIBatch(question);
+}
 
-        async function callAIBatch(question) {
-    // Add current user question to history array
+// 5. AI API CALL - Sends history so the bot knows what was said before
+async function callAIBatch(question) {
+    // Save current question to history
     chatHistory.push({ role: "user", content: question });
 
     try {
@@ -107,7 +62,7 @@
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ 
                 message: question,
-                history: chatHistory // This sends the previous messages to the AI
+                history: chatHistory // CRITICAL: This prevents repetition
             })
         });
         
@@ -115,12 +70,13 @@
 
         const data = await response.json();
         
-        // Save the AI response to history so it doesn't repeat the same greeting
+        // Save AI reply to history so it doesn't repeat greetings
         chatHistory.push({ role: "assistant", content: data.reply });
         
         addTutorMessage(data.reply);
+
     } catch (error) {
-        // This stops the "Something went wrong" loop
+        // Friendly error for when the Render free-tier server is waking up
         addTutorMessage("I'm just waking up my brain! 🧠 Give me 5 seconds and please type that again.");
     }
 }
